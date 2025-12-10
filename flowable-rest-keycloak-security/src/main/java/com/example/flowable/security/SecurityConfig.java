@@ -5,12 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +46,8 @@ public class SecurityConfig {
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             );
 
+        http.addFilterAfter(jwtLoggingFilter(), BearerTokenAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -63,6 +67,11 @@ public class SecurityConfig {
         });
         converter.setPrincipalClaimName("preferred_username");
         return converter;
+    }
+
+    @Bean
+    public RequestAuthenticationLoggingFilter jwtLoggingFilter() {
+        return new RequestAuthenticationLoggingFilter();
     }
 
     private Collection<? extends GrantedAuthority> extractRealmRoles(org.springframework.security.oauth2.jwt.Jwt jwt) {

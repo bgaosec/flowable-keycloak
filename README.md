@@ -62,3 +62,6 @@ Expected: `401` for missing/invalid token, `200` for valid token with sufficient
 - Verify issuer/JWK URIs match the Keycloak realm.
 - Ensure tokens include a flat `roles` claim (mapped to `ROLE_*` authorities).
 - Check container logs with `docker-compose logs -f flowable-rest`.
+- Enable DEBUG tracing for authentication if needed:
+  - Env vars: `LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG` and optionally `LOGGING_LEVEL_COM_EXAMPLE_FLOWABLE_SECURITY=DEBUG`
+  - The custom `RequestAuthenticationLoggingFilter` will emit per-request auth traces (status, principal, authorities) when DEBUG is on.
