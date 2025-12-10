@@ -33,6 +33,8 @@ services:
       # SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://192.168.1.96:8080/realms/flowable/protocol/openid-connect/certs"
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
       LOGGING_LEVEL_COM_EXAMPLE_FLOWABLE_SECURITY: DEBUG
+      # Optional: enable TRACE to see entry point selection and matcher decisions
+      # LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_WEB: TRACE
 
     ports:
       - "8000:8080"
