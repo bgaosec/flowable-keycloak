@@ -37,6 +37,18 @@ Environment highlights (see `docker-compose.yml`):
 - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://keycloak.example.com/realms/flowable`
 - Optional: `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI`
 
+## Keycloak setup (realm: flowable)
+- Create realm `flowable`.
+- Create realm roles you will enforce in Flowable, e.g. `flowable-admin`, `flowable-user`.
+- Create a client (e.g. `flowable-rest-client`) with protocol `openid-connect`; enable `Standard Flow` (authorization code) and/or `Direct Access Grants` as you prefer; set valid redirect/logout URIs for your caller.
+- In the client, add a client scope/mapper so realm roles are exposed as a flat `roles` claim:
+  - Mapper type: `Realm Role` (or `User Realm Role`)
+  - Token claim name: `roles`
+  - Claim JSON type: `String` / multivalued
+  - Add to ID token and access token; do not prefix
+- Create users and assign the realm roles above.
+- Ensure tokens include `preferred_username` (default in Keycloak) so Spring Security maps it to the principal.
+
 ## Test
 After obtaining a Keycloak access token:
 ```bash

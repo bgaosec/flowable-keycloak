@@ -7,8 +7,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -45,8 +54,56 @@ public class SecurityConfig {
         authoritiesConverter.setAuthorityPrefix("ROLE_");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> combined = new ArrayList<>();
+            combined.addAll(authoritiesConverter.convert(jwt));
+            combined.addAll(extractRealmRoles(jwt));
+            combined.addAll(extractResourceRoles(jwt));
+            return combined;
+        });
         converter.setPrincipalClaimName("preferred_username");
         return converter;
+    }
+
+    private Collection<? extends GrantedAuthority> extractRealmRoles(org.springframework.security.oauth2.jwt.Jwt jwt) {
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        if (realmAccess == null) {
+            return List.of();
+        }
+        Object roles = realmAccess.get("roles");
+        if (!(roles instanceof Collection<?> roleCollection)) {
+            return List.of();
+        }
+        return roleCollection.stream()
+            .map(Object::toString)
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+            .collect(Collectors.toSet());
+    }
+
+    private Collection<? extends GrantedAuthority> extractResourceRoles(org.springframework.security.oauth2.jwt.Jwt jwt) {
+        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+        if (resourceAccess == null) {
+            return List.of();
+        }
+        // Include roles for the authorized party (azp) and "account" if present.
+        List<String> clientIds = new ArrayList<>();
+        Optional.ofNullable(jwt.getClaimAsString("azp")).ifPresent(clientIds::add);
+        clientIds.add("account");
+
+        return resourceAccess.entrySet().stream()
+            .filter(entry -> clientIds.contains(entry.getKey()))
+            .flatMap(entry -> {
+                Object value = entry.getValue();
+                if (!(value instanceof Map<?, ?> clientMap)) {
+                    return List.<String>of().stream();
+                }
+                Object roles = clientMap.get("roles");
+                if (!(roles instanceof Collection<?> roleCollection)) {
+                    return List.<String>of().stream();
+                }
+                return roleCollection.stream().map(Object::toString);
+            })
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+            .collect(Collectors.toSet());
     }
 }
