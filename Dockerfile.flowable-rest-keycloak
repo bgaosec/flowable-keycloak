@@ -1,5 +1,5 @@
 FROM flowable/flowable-rest:latest
 
-# The base image loads any additional jars placed under /app/libs on the classpath.
+# The base image explodes the WAR under /app. Extra libs are picked up from /app/WEB-INF/lib.
 # Build the module first: mvn -pl flowable-rest-keycloak-security -am clean package
-COPY flowable-rest-keycloak-security/target/flowable-rest-keycloak-security.jar /app/libs/flowable-rest-keycloak-security.jar
+COPY flowable-rest-keycloak-security/target/flowable-rest-keycloak-security.jar /app/WEB-INF/lib/flowable-rest-keycloak-security.jar

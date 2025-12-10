@@ -25,8 +25,10 @@ services:
       spring.datasource.password: flowable
       flowable.database-schema-update: "true"
 
-      FLOWABLE_IDM_ENABLED: "false"
       FLOWABLE_COMMON_APP_SECURITY_ENABLED: "true"
+      # Keep IDM engine present for Flowable bootstrap; disable default admin/demo content.
+      FLOWABLE_REST_APP_ADMIN_USER_ID: "false"
+      FLOWABLE_REST_APP_CREATE_DEMO_DEFINITIONS: "false"
 
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://192.168.1.96:8080/realms/flowable"
       # SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://192.168.1.96:8080/realms/flowable/protocol/openid-connect/certs"

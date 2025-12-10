@@ -5,7 +5,7 @@ Custom Spring Security module plus Docker image to protect Flowable REST endpoin
 ## Project Layout
 - `flowable-rest-keycloak-security/pom.xml`: Maven module that builds the security configuration JAR.
 - `flowable-rest-keycloak-security/src/main/java/com/example/flowable/security/SecurityConfig.java`: Secures Flowable REST using Spring Security OAuth2 Resource Server with Keycloak roles.
-- `Dockerfile.flowable-rest-keycloak`: Builds a custom image extending `flowable/flowable-rest:latest` and adds the JAR to `/app/libs`.
+- `Dockerfile.flowable-rest-keycloak`: Builds a custom image extending `flowable/flowable-rest:latest` and adds the JAR to `/app/WEB-INF/lib`.
 - `docker-compose.yml`: Runs Postgres and the custom Flowable REST image with Keycloak/JWT configuration.
 
 ## Build
@@ -20,7 +20,7 @@ Outputs `target/flowable-rest-keycloak-security.jar` (non-executable; intended t
 ```bash
 cd ..
 docker build -f Dockerfile.flowable-rest-keycloak -t 192.168.1.129:5000/flowable-rest-kc:latest .
-docker push  -t 192.168.1.129:5000/flowable-rest-kc:latest
+docker push   192.168.1.129:5000/flowable-rest-kc:latest
 ```
 
 The base image loads any additional jars under `/app/libs`, so the COPY step places the security module on the classpath.
@@ -31,8 +31,9 @@ docker-compose up -d
 ```
 
 Environment highlights (see `docker-compose.yml`):
-- `FLOWABLE_IDM_ENABLED=false`
 - `FLOWABLE_COMMON_APP_SECURITY_ENABLED=true`
+- `FLOWABLE_REST_APP_ADMIN_USER_ID=false` (skips default admin bootstrap that requires IDM)
+- `FLOWABLE_REST_APP_CREATE_DEMO_DEFINITIONS=false`
 - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://keycloak.example.com/realms/flowable`
 - Optional: `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI`
 
