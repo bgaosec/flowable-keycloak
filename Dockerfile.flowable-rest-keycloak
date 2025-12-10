@@ -1,0 +1,4 @@
+FROM flowable/flowable-rest:latest
+
+# The base image loads any additional jars placed under /app/libs on the classpath.
+COPY target/flowable-rest-keycloak-security.jar /app/libs/flowable-rest-keycloak-security.jar

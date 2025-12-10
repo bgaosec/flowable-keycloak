@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: flowable
+      POSTGRES_USER: flowable
+      POSTGRES_PASSWORD: flowable
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowable -d flowable"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  flowable-rest:
+    image: myorg/flowable-rest-keycloak:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      spring.datasource.driver-class-name: org.postgresql.Driver
+      spring.datasource.url: jdbc:postgresql://db:5432/flowable
+      spring.datasource.username: flowable
+      spring.datasource.password: flowable
+      flowable.database-schema-update: "true"
+
+      FLOWABLE_IDM_ENABLED: "false"
+      FLOWABLE_COMMON_APP_SECURITY_ENABLED: "true"
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "https://keycloak.example.com/realms/flowable"
+      # SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://keycloak.example.com/realms/flowable/protocol/openid-connect/certs"
+
+    ports:
+      - "8000:8080"
+    restart: unless-stopped
